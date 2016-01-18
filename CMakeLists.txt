@@ -15,6 +15,10 @@ else()
 option(WITH_TWEETNACL "Build with tweetnacl" ON)
 endif()
 
+option(ZEROMQ_INSTALL "Include installation target" OFF)
+option(ZEROMQ_BUILD_PERTOOLS "Include performance evaluationt tools" OFF)
+option(ZEROMQ_BUILD_STATIC "Build static version of the library?" OFF)
+
 if(WITH_TWEETNACL)
   add_definitions(-DHAVE_TWEETNACL -DHAVE_LIBSODIUM)
   include_directories(
@@ -192,7 +196,7 @@ else()
 endif()
 
 if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-  zmq_check_cxx_flag_prepend("-Wextra")
+  zmq_check_cxx_flag_prepend("-Wextra -Wno-unused-parameter")
 endif()
 
 zmq_check_cxx_flag_prepend("-Wno-long-long")
@@ -629,11 +633,13 @@ else()
                              OUTPUT_NAME "zmq"
                              PUBLIC_HEADER "${public_headers}")
     endif()
-    add_library(libzmq-static STATIC ${sources} ${public_headers} ${html-docs} ${readme-docs} ${zmq-pkgconfig})
-    set_target_properties(libzmq-static PROPERTIES
-      PUBLIC_HEADER "${public_headers}"
-      COMPILE_FLAGS "-DZMQ_STATIC"
-      OUTPUT_NAME "zmq-static")
+    if (ZEROMQ_BUILD_STATIC)
+      add_library(libzmq-static STATIC ${sources} ${public_headers} ${html-docs} ${readme-docs} ${zmq-pkgconfig})
+      set_target_properties(libzmq-static PROPERTIES
+        PUBLIC_HEADER "${public_headers}"
+        COMPILE_FLAGS "-DZMQ_STATIC"
+        OUTPUT_NAME "zmq-static")
+    endif()
 endif()
 
 target_link_libraries(libzmq ${SODIUM_LIBRARY} ${CMAKE_THREAD_LIBS_INIT})
@@ -662,7 +668,7 @@ set(perf-tools local_lat
                inproc_lat
                inproc_thr)
 
-if(NOT CMAKE_BUILD_TYPE STREQUAL "Debug") # Why?
+if(NOT CMAKE_BUILD_TYPE STREQUAL "Debug" AND ZEROMQ_BUILD_PERFTOOLS) # Why?
   foreach(perf-tool ${perf-tools})
     add_executable(${perf-tool} perf/${perf-tool}.cpp)
     target_link_libraries(${perf-tool} libzmq)
@@ -701,18 +707,33 @@ endif()
 #-----------------------------------------------------------------------------
 # installer
 
-if(MSVC)
-  install(TARGETS libzmq libzmq-static
+if(MSVC AND ZEROMQ_INSTALL)
+  install(TARGETS libzmq
           ARCHIVE DESTINATION lib
           LIBRARY DESTINATION lib
           PUBLIC_HEADER DESTINATION include
           COMPONENT SDK)
+  if (ZEROMQ_BUILD_STATIC)
+    install(TARGETS libzmq-static
+            ARCHIVE DESTINATION lib
+            LIBRARY DESTINATION lib
+            PUBLIC_HEADER DESTINATION include
+            COMPONENT SDK)
+  endif()
+
   if(CMAKE_BUILD_TYPE STREQUAL "Debug")
-    install(TARGETS libzmq libzmq-static
+    install(TARGETS libzmq
             RUNTIME DESTINATION bin
             ARCHIVE DESTINATION lib
             PUBLIC_HEADER DESTINATION include
             COMPONENT SDK)
+    if (ZEROMQ_BUILD_STATIC)
+      install(TARGETS libzmq-static
+              RUNTIME DESTINATION bin
+              ARCHIVE DESTINATION lib
+              PUBLIC_HEADER DESTINATION include
+              COMPONENT SDK)
+    endif()
     if(NOT CMAKE_PDB_OUTPUT_DIRECTORY)
       install(FILES ${CMAKE_CURRENT_BINARY_DIR}/bin/libzmq${MSVC_TOOLSET}-mt-gd-${ZMQ_VERSION_MAJOR}_${ZMQ_VERSION_MINOR}_${ZMQ_VERSION_PATCH}.pdb DESTINATION lib
             COMPONENT SDK)
@@ -724,12 +745,20 @@ if(MSVC)
             COMPONENT Runtime)
   endif()
 else()
-  install(TARGETS libzmq libzmq-static
+  install(TARGETS libzmq
           RUNTIME DESTINATION bin
           ARCHIVE DESTINATION lib
           LIBRARY DESTINATION lib
           FRAMEWORK DESTINATION "Library/Frameworks"
           PUBLIC_HEADER DESTINATION include)
+  if (ZEROMQ_BUILD_STATIC)
+    install(TARGETS libzmq libzmq-static
+            RUNTIME DESTINATION bin
+            ARCHIVE DESTINATION lib
+            LIBRARY DESTINATION lib
+            FRAMEWORK DESTINATION "Library/Frameworks"
+            PUBLIC_HEADER DESTINATION include)
+  endif()
 endif()
 
 # install(FILES ${public_headers}
@@ -761,7 +790,7 @@ if(WITH_DOC)
 endif()
 
 
-if(MSVC)
+if(MSVC AND ZEROMQ_INSTALL)
   include(InstallRequiredSystemLibraries)
 
   if(CMAKE_CL_64)
