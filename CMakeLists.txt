@@ -285,10 +285,10 @@ endif()
 
 set(CMAKE_PYTHON_VERSION 2.7 2.6 2.5 2.4)
 find_package(PythonInterp)
-find_package(AsciiDoc)
+#find_package(AsciiDoc)
 
-cmake_dependent_option(WITH_DOC "Build Reference Guide documentation(requires DocBook)" ON
-                       "PYTHON_FOUND;ASCIIDOC_FOUND" OFF)
+#cmake_dependent_option(WITH_DOC "Build Reference Guide documentation(requires DocBook)" ON
+                       #"PYTHON_FOUND;ASCIIDOC_FOUND" OFF)
 
 if(MSVC)
   if(WITH_OPENPGM)
@@ -576,9 +576,9 @@ foreach(txt ${docs})
     DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/${src}
     WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
     COMMENT "Generating ${html}")
-  if(WITH_DOC)
-    list(APPEND html-docs ${CMAKE_CURRENT_BINARY_DIR}/${dst})
-  endif()
+  #if(WITH_DOC)
+    #list(APPEND html-docs ${CMAKE_CURRENT_BINARY_DIR}/${dst})
+  #endif()
 endforeach()
 
 if(ZMQ_BUILD_FRAMEWORK)
@@ -786,11 +786,11 @@ foreach(readme ${readme-docs})
   endif()
 endforeach()
 
-if(WITH_DOC)
-  if(NOT ZMQ_BUILD_FRAMEWORK)
-    install(FILES ${html-docs} DESTINATION doc/zmq COMPONENT RefGuide)
-  endif()
-endif()
+#if(WITH_DOC)
+  #if(NOT ZMQ_BUILD_FRAMEWORK)
+    #install(FILES ${html-docs} DESTINATION doc/zmq COMPONENT RefGuide)
+  #endif()
+#endif()
 
 
 if(MSVC AND ZEROMQ_INSTALL)
@@ -863,12 +863,12 @@ if(MSVC AND ZEROMQ_INSTALL)
     DISPLAY_NAME "ZeroMQ headers and libraries"
     INSTALL_TYPES FullInstall DevInstall
     GROUP Development)
-  if(WITH_DOC)
-    cpack_add_component(RefGuide
-      DISPLAY_NAME "ZeroMQ reference guide"
-      INSTALL_TYPES FullInstall DevInstall
-      GROUP Development)
-  endif()
+  #if(WITH_DOC)
+    #cpack_add_component(RefGuide
+      #DISPLAY_NAME "ZeroMQ reference guide"
+      #INSTALL_TYPES FullInstall DevInstall
+      #GROUP Development)
+  #endif()
   cpack_add_component(Runtime
     DISPLAY_NAME "ZeroMQ runtime files"
     REQUIRED
