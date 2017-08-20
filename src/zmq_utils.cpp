@@ -27,8 +27,6 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#define __STDC_LIMIT_MACROS 
-
 #include "precompiled.hpp"
 #include "macros.hpp"
 
