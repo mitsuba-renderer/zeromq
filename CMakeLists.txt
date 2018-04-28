@@ -16,6 +16,10 @@ if(COMPILER_SUPPORTS_C11)
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=gnu11")
 endif()
 
+if(POLICY CMP0068)
+  cmake_policy(SET CMP0068 NEW)
+endif()
+
 # Will be used to add flags to pkg-config useful when apps want to statically link
 set (pkg_config_libs_private "")
 
